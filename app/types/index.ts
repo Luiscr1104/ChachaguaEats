@@ -7,6 +7,18 @@ export type Category = {
   image: ImageSourcePropType;
 };
 
+export type MenuItem = {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+};
+
+export type MenuSection = {
+  title: string;
+  items: MenuItem[];
+};
+
 export type Local = {
   id: number;
   name: string;
@@ -19,5 +31,10 @@ export type Local = {
   description: string;
   tags: string[];
   image: ImageSourcePropType;
-  specialDishes?: { name: string; price: string; image: string }[];
+  menu: MenuSection[];
+};
+
+export type CartItem = {
+  item: MenuItem;
+  quantity: number;
 };

@@ -15,3 +15,5 @@ export const categories: Category[] = [
   { id: 4, name: "Heladería", places: 1, image: categoryImages.helado },
   { id: 5, name: "Comidas Rápidas", places: 3, image: categoryImages.fastfood },
 ];
+
+export default categories;

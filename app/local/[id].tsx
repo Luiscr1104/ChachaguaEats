@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   View,
@@ -12,32 +12,24 @@ import {
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { featuredLocals } from "../data/locals"; // Importa los datos de los locales
-
+import { Local, MenuItem } from "../types";
+import { Linking } from "react-native";
+import { Switch } from "react-native";
 const { width } = Dimensions.get("window");
-
-type MenuItem = {
-  name: string;
-  price: string;
-  image: string;
-};
-
-type Local = {
-  id: number;
-  name: string;
-  rating: number;
-  schedule: string;
-  description: string;
-  tags: string[];
-  image: any;
-  specialDishes?: MenuItem[];
-};
 
 type MenuSectionProps = {
   title: string;
   items: MenuItem[];
+  addToCart: (item: MenuItem) => void;
+  cart?: { item: MenuItem; quantity: number }[];
 };
 
-const MenuSection: React.FC<MenuSectionProps> = ({ title, items }) => (
+const MenuSection: React.FC<MenuSectionProps> = ({
+  title,
+  items,
+  addToCart,
+  cart = [],
+}) => (
   <View style={styles.menuSection}>
     <Text style={styles.menuSectionTitle}>{title}</Text>
     <ScrollView
@@ -45,28 +37,97 @@ const MenuSection: React.FC<MenuSectionProps> = ({ title, items }) => (
       showsHorizontalScrollIndicator={false}
       style={styles.menuItemsScroll}
     >
-      {items.map((item, index) => (
-        <TouchableOpacity key={index} style={styles.menuItem}>
-          <Image source={{ uri: item.image }} style={styles.menuItemImage} />
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.8)"]}
-            style={styles.menuItemGradient}
+      {items.map((item) => {
+        const cartItem = cart.find((cartItem) => cartItem.item.id === item.id);
+        const quantity = cartItem ? cartItem.quantity : 0; // 🔥 Obtener cantidad de ese item
+
+        return (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.menuItem}
+            onPress={() => addToCart(item)}
           >
-            <Text style={styles.menuItemName}>{item.name}</Text>
-            <Text style={styles.menuItemPrice}>₡{item.price}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      ))}
+            <Image
+              source={
+                typeof item.image === "string"
+                  ? { uri: item.image }
+                  : item.image
+              }
+              style={styles.menuItemImage}
+            />
+            <LinearGradient
+              colors={["transparent", "rgba(0,0,0,0.8)"]}
+              style={styles.menuItemGradient}
+            >
+              <Text style={styles.menuItemName}>{item.name}</Text>
+              <Text style={styles.menuItemPrice}>₡{item.price}</Text>
+            </LinearGradient>
+
+            {/* 🔥 Badge con la cantidad en el carrito */}
+            {quantity > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{quantity}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        );
+      })}
     </ScrollView>
   </View>
 );
 
 const LocalDetailScreen: React.FC = () => {
-  const { id } = useLocalSearchParams(); // 🔥 Obtiene el id de la URL
+  const [isExpress, setIsExpress] = useState(false);
+  const [cart, setCart] = useState<{ item: MenuItem; quantity: number }[]>([]);
+
+  const { id } = useLocalSearchParams();
   const router = useRouter();
   const local: Local | undefined = featuredLocals.find(
     (item) => item.id.toString() === id
   );
+
+  const addToCart = (item: MenuItem) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find(
+        (cartItem) => cartItem.item.id === item.id
+      );
+      if (existingItem) {
+        return prevCart.map((cartItem) =>
+          cartItem.item.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
+        );
+      }
+      return [...prevCart, { item, quantity: 1 }];
+    });
+  };
+
+  // 🔥 Disminuir cantidad o eliminar si es 1
+  const decreaseQuantity = (itemId: number) => {
+    setCart(
+      (prevCart) =>
+        prevCart
+          .map((cartItem) =>
+            cartItem.item.id === itemId
+              ? { ...cartItem, quantity: cartItem.quantity - 1 }
+              : cartItem
+          )
+          .filter((cartItem) => cartItem.quantity > 0) // 🔥 Si llega a 0, lo eliminamos
+    );
+  };
+
+  // 🔥 Eliminar item directamente
+  const removeFromCart = (itemId: number) => {
+    setCart((prevCart) =>
+      prevCart.filter((cartItem) => cartItem.item.id !== itemId)
+    );
+  };
+
+  const calculateTotal = () =>
+    cart.reduce(
+      (total, cartItem) => total + cartItem.item.price * cartItem.quantity,
+      0
+    );
 
   if (!local) {
     return (
@@ -75,11 +136,35 @@ const LocalDetailScreen: React.FC = () => {
       </View>
     );
   }
+  const handleOrderNow = () => {
+    if (!local || cart.length === 0) return;
+
+    const orderMessage = cart
+      .map(
+        ({ item, quantity }) =>
+          `- ${quantity}x ${item.name} - ₡${item.price * quantity}`
+      )
+      .join("\n");
+
+    const total = calculateTotal();
+    const expressMessage = isExpress
+      ? "\n🚀 *Entrega Express* (Confirmar costo con el local)"
+      : "";
+
+    const message = `Hola, quiero realizar un pedido en *${local.name}*:\n\n${orderMessage}\n\nTotal: *₡${total}*${expressMessage}\n\nMi dirección es: `;
+
+    const whatsappUrl = `https://wa.me/${
+      local.whatsapp
+    }?text=${encodeURIComponent(message)}`;
+
+    Linking.openURL(whatsappUrl).catch((err) =>
+      console.error("Error al abrir WhatsApp", err)
+    );
+  };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        {/* 🔥 Botón de Atrás */}
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backButton}
@@ -106,30 +191,106 @@ const LocalDetailScreen: React.FC = () => {
       </View>
 
       <View style={styles.content}>
-        {/* Horario */}
         <View style={styles.scheduleContainer}>
           <Ionicons name="time-outline" size={20} color="#2D6A4F" />
           <Text style={styles.scheduleText}>{local.schedule}</Text>
         </View>
 
-        {/* Descripción */}
         <Text style={styles.description}>{local.description}</Text>
 
-        {/* Etiquetas */}
         <View style={styles.tagsContainer}>
-          {local.tags.map((tag, index) => (
-            <View key={index} style={styles.tag}>
+          {local.tags.map((tag) => (
+            <View key={tag} style={styles.tag}>
               <Text style={styles.tagText}>{tag}</Text>
             </View>
           ))}
         </View>
 
-        {/* Platillos Especiales */}
-        {local.specialDishes && (
+        {/* Secciones del Menú */}
+        {local.menu.map((section) => (
           <MenuSection
-            title="Platillos Destacados"
-            items={local.specialDishes}
+            key={section.title}
+            title={section.title}
+            items={section.items}
+            addToCart={addToCart}
+            cart={cart} // 🔥 Pasar carrito para mostrar cantidades
           />
+        ))}
+
+        {cart.length > 0 && (
+          <View style={styles.cartContainer}>
+            <Text style={styles.cartTitle}>Tu Pedido</Text>
+            <View style={styles.cartItemsContainer}>
+              {cart.map(({ item, quantity }) => (
+                <View key={item.id} style={styles.cartItem}>
+                  <Image
+                    source={
+                      typeof item.image === "string"
+                        ? { uri: item.image }
+                        : item.image
+                    }
+                    style={styles.cartItemImage}
+                  />
+                  <View style={styles.cartItemInfo}>
+                    <Text style={styles.cartItemText}>{item.name}</Text>
+                    <Text style={styles.cartItemPrice}>
+                      ₡{item.price * quantity}
+                    </Text>
+                  </View>
+                  <View style={styles.cartActions}>
+                    <TouchableOpacity
+                      onPress={() => decreaseQuantity(item.id)}
+                      style={styles.cartActionButton}
+                    >
+                      <MaterialIcons name="remove" size={20} color="#2D6A4F" />
+                    </TouchableOpacity>
+                    <Text style={styles.cartQuantity}>{quantity}</Text>
+                    <TouchableOpacity
+                      onPress={() => addToCart(item)}
+                      style={styles.cartActionButton}
+                    >
+                      <MaterialIcons name="add" size={20} color="#2D6A4F" />
+                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => removeFromCart(item.id)}
+                    style={styles.cartRemoveButton}
+                  >
+                    <MaterialIcons
+                      name="delete-outline"
+                      size={22}
+                      color="#FF6B6B"
+                    />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+            <View style={styles.cartFooter}>
+              <View style={styles.totalContainer}>
+                <Text style={styles.totalLabel}>Total:</Text>
+                <Text style={styles.totalAmount}>₡{calculateTotal()}</Text>
+              </View>
+              <View style={styles.expressContainer}>
+                <Text style={styles.expressLabel}>
+                  ¿Necesitas entrega express?
+                </Text>
+                <Switch
+                  value={isExpress}
+                  onValueChange={setIsExpress}
+                  trackColor={{ false: "#ccc", true: "#2D6A4F" }}
+                  thumbColor={isExpress ? "#ffffff" : "#f4f3f4"}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.checkoutButton}
+                onPress={handleOrderNow}
+              >
+                <Text style={styles.checkoutButtonText}>Ordenar ahora</Text>
+                <MaterialIcons name="arrow-forward" size={20} color="white" />
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
       </View>
     </ScrollView>
@@ -148,6 +309,73 @@ const styles = StyleSheet.create({
     height: "50%",
     padding: 20,
     justifyContent: "flex-end",
+  },
+  cartContainer: {
+    backgroundColor: "white",
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 20,
+    elevation: 4,
+  },
+  cartTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2D6A4F",
+    marginBottom: 12,
+  },
+  cartItem: {
+    flexDirection: "row",
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+    padding: 12,
+    alignItems: "center",
+  },
+  cartItemText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#2D6A4F",
+  },
+  cartItemHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  cartFooter: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E8E8E8",
+    paddingTop: 16,
+  },
+  totalContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  totalLabel: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#2D6A4F",
+  },
+  totalAmount: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#2D6A4F",
+  },
+  checkoutButton: {
+    backgroundColor: "#2D6A4F",
+    padding: 12,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  checkoutButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
   backButton: {
     position: "absolute",
@@ -216,8 +444,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    position: "relative", // 🔥 Para que el badge se posicione correctamente
   },
-  menuItemImage: { width: "100%", height: "100%" },
+  menuItemImage: {
+    width: "100%",
+    height: "100%",
+  },
   menuItemGradient: {
     position: "absolute",
     bottom: 0,
@@ -226,6 +458,77 @@ const styles = StyleSheet.create({
     height: "50%",
     padding: 8,
     justifyContent: "flex-end",
+  },
+  cartBadge: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    backgroundColor: "#FF6B6B",
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    minWidth: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  cartBadgeText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  cartActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  cartActionButton: {
+    backgroundColor: "#E8F5E9",
+    padding: 6,
+    borderRadius: 6,
+  },
+  cartQuantity: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2D6A4F",
+    minWidth: 24,
+    textAlign: "center",
+  },
+  cartRemoveButton: {
+    padding: 6,
+    marginLeft: 10,
+  },
+  cartItemsContainer: {
+    gap: 12, // Espaciado entre elementos
+  },
+  cartItemImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 8,
+  },
+  cartItemInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  cartItemPrice: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#2D6A4F",
+  },
+  expressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+  },
+  expressLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2D6A4F",
   },
   menuItemName: { color: "white", fontSize: 14, fontWeight: "bold" },
   menuItemPrice: { color: "#B7E4C7", fontSize: 12, marginTop: 2 },

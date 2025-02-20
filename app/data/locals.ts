@@ -13,67 +13,179 @@ export const featuredLocals: Local[] = [
     description: "El mejor centro gastronómico de Chachagua...",
     tags: ["Café", "Helados", "Pizza", "Comida Rápida"],
     image: require("../assets/images/oasis.jpg"),
-    specialDishes: [
+    preparationTime: "15-20 min",
+    lessBusy: "14:00 - 17:00",
+    moreBusy: "12:00 - 14:00, 19:00 - 21:00",
+    menu: [
       {
-        name: "Pizza Suprema",
-        price: "12000",
-        image: "https://api.a0.dev/assets/image?text=pizza&aspect=1:1",
+        title: "Pizzas",
+        items: [
+          {
+            id: 1,
+            name: "Pizza Suprema",
+            price: 12000,
+            image: require("../assets/images/pizza1.jpg"),
+          },
+          {
+            id: 2,
+            name: "Pizza Hawaiana",
+            price: 10000,
+            image: require("../assets/images/pizza2.jpg"),
+          },
+        ],
+      },
+      {
+        title: "Bebidas",
+        items: [
+          {
+            id: 3,
+            name: "Coca-Cola",
+            price: 2000,
+            image: require("../assets/images/coca.jpg"), // ✅ Cambio de .webp a .jpg
+          },
+          {
+            id: 4,
+            name: "Jugo Natural",
+            price: 2500,
+            image: require("../assets/images/coca.jpg"), // ✅ Imagen corregida
+          },
+        ],
+      },
+      {
+        title: "Combos",
+        items: [
+          {
+            id: 5,
+            name: "Combo Familiar",
+            price: 25000,
+            image: require("../assets/images/fastfood.jpg"), // ✅ Imagen corregida
+          },
+        ],
       },
     ],
   },
   {
     id: 2,
-    name: "Pollera Chachagua",
-    rating: 4.7,
-    schedule: "11:00 AM - 9:00 PM",
-    phone: "+50688888888",
-    whatsapp: "50688888888",
-    sinpe: "88888888",
-    defaultAmount: "3000",
-    description:
-      "El mejor pollo a la leña de la zona, con un sabor inigualable...",
-    tags: ["Café", "Desayunos", "Almuerzos"],
-    image: require("../assets/images/pollera.jpg"),
-    specialDishes: [
+    name: "Quinchos Pizza",
+    rating: 4.5,
+    schedule: "10:00 AM - 9:00 PM",
+    phone: "+50688887777",
+    whatsapp: "50688887777",
+    sinpe: "88887777",
+    defaultAmount: "4500",
+    description: "Las mejores pizzas de Chachagua...",
+    tags: ["Pizza", "Calzone", "Palitos de queso"],
+    image: require("../assets/images/quinchos.jpeg"),
+    preparationTime: "15-20 min",
+    lessBusy: "14:00 - 17:00",
+    moreBusy: "12:00 - 14:00, 19:00 - 21:00",
+    menu: [
       {
-        name: "Café Helado",
-        price: "3500",
-        image:
-          "https://api.a0.dev/assets/image?text=iced%20coffee%20with%20cream%20premium&aspect=1:1",
+        title: "Carnes",
+        items: [
+          {
+            id: 6,
+            name: "Churrasco Especial",
+            price: 15000,
+            image: require("../assets/images/churrasco.jpg"),
+          },
+          {
+            id: 7,
+            name: "Costillas BBQ",
+            price: 14000,
+            image: require("../assets/images/costillas-bbq.jpg"),
+          },
+        ],
+      },
+      {
+        title: "Bebidas",
+        items: [
+          {
+            id: 8,
+            name: "Cerveza Artesanal",
+            price: 3500,
+            image: require("../assets/images/cerveza-artesanal.jpg"), // ✅ Cambio de .webp a .jpg
+          },
+          {
+            id: 9,
+            name: "Refresco Natural",
+            price: 2500,
+            image: require("../assets/images/coca.jpg"), // ✅ Imagen corregida
+          },
+        ],
       },
     ],
   },
   {
     id: 3,
-    name: "Heladería Chachagua",
-    rating: 4.6,
-    schedule: "11:00 AM - 9:00 PM",
-    phone: "+50688888888",
-    whatsapp: "50688888888",
-    sinpe: "88888888",
-    defaultAmount: "2000",
-    description: "La mejor heladería de la zona, con sabores únicos...",
-    tags: ["Helados", "Postres", "Café"],
-    image: require("../assets/images/helado.jpeg"),
-    specialDishes: [
+    name: "Laras Food",
+    rating: 4.8,
+    schedule: "11:00 AM - 8:00 PM",
+    phone: "+50686946036",
+    whatsapp: "50686946036",
+    sinpe: "86946036",
+    defaultAmount: "3000",
+    description: "El secreto del amor está en el sabor...",
+    tags: ["FastFood", "Pollo", "Hamburguesas"],
+    image: require("../assets/images/larasFood.jpg"),
+    preparationTime: "15-20 min",
+    lessBusy: "14:00 - 17:00",
+    moreBusy: "12:00 - 14:00, 19:00 - 21:00",
+    menu: [
       {
-        name: "Helado de Vainilla",
-        price: "1000",
-        image:
-          "https://api.a0.dev/assets/image?text=vanilla%20ice%20cream&aspect=1:1",
+        title: "Comidas",
+        items: [
+          {
+            id: 10,
+            name: "Fajitas",
+            price: 1000,
+            image: require("../assets/images/polloFrito.jpg"),
+          },
+          {
+            id: 11,
+            name: "Patacones",
+            price: 800,
+            image: require("../assets/images/patacon.jpg"),
+          },
+          {
+            id: 12,
+            name: "Nachos",
+            price: 1500,
+            image: require("../assets/images/polloFrito.jpg"),
+          },
+          {
+            id: 13,
+            name: "Pollo Frito",
+            price: 1800,
+            image: require("../assets/images/polloFrito.jpg"),
+          },
+          {
+            id: 14,
+            name: "Ceviche",
+            price: 1200,
+            image: require("../assets/images/ceviche.jpg"),
+          },
+        ],
       },
       {
-        name: "Helado de Vainilla",
-        price: "1000",
-        image:
-          "https://api.a0.dev/assets/image?text=fresa%20ice%20cream&aspect=1:1",
-      },
-      {
-        name: "Helado de Vainilla",
-        price: "1000",
-        image:
-          "https://api.a0.dev/assets/image?text=chocolate%20ice%20cream&aspect=1:1",
+        title: "Bebidas",
+        items: [
+          {
+            id: 15,
+            name: "Batido de Chocolate",
+            price: 2000,
+            image: require("../assets/images/coca.jpg"), // ✅ Cambio de .webp a .jpg
+          },
+          {
+            id: 16,
+            name: "Café Helado",
+            price: 2500,
+            image: require("../assets/images/cafe.jpeg"), // ✅ Imagen corregida
+          },
+        ],
       },
     ],
   },
 ];
+
+export default featuredLocals;
