@@ -29,10 +29,13 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# Local env files (para evitar subir credenciales sensibles)
+.env
+.env.*
 .env*.local
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 
+# Example app
 app-example

@@ -5,6 +5,12 @@ export type Category = {
   name: string;
   places: number;
   image: ImageSourcePropType;
+  icon:
+    | "pizza-outline"
+    | "flame-outline"
+    | "cafe-outline"
+    | "ice-cream-outline"
+    | "fast-food-outline";
 };
 
 export type MenuItem = {
@@ -22,6 +28,7 @@ export type MenuSection = {
 export type Local = {
   id: number;
   name: string;
+  category: string;
   rating: number;
   schedule: string;
   phone: string;
@@ -30,7 +37,7 @@ export type Local = {
   defaultAmount: string;
   description: string;
   tags: string[];
-  image: ImageSourcePropType;
+  image: string | ImageSourcePropType; // ✅ Ahora acepta tanto URLs como archivos locales
   menu: MenuSection[];
 };
 
